@@ -129,7 +129,9 @@ def quaternion_to_angle(q):
 
 cdef class PyOMap:
     cdef OMap *thisptr      # hold a C++ instance which we're wrapping
-    def __cinit__(self, arg1, arg2=None):
+    def __cinit__(self, arg1, arg2=None, fast_mode=False):
+        # NOTE: If fast_mode is True, the input map is transposed!
+        cdef np.uint8_t[:,:] buf = arg1
         set_trans_params = False
         if arg1 is not None and arg2 is not None:
             if isinstance(arg1, int) and isinstance(arg1, int):
@@ -138,11 +140,20 @@ cdef class PyOMap:
                 self.thisptr = new OMap(<string>arg1,<float>arg2)
         elif arg1 is not None:
             if isinstance(arg1, np.ndarray):
-                height, width = arg1.shape
-                self.thisptr = new OMap(<int>height,<int>width)
-                for y in xrange(height):
-                    for x in xrange(width):
-                        self.thisptr.grid[x][y] = <bool>arg1[y,x]
+                if fast_mode:
+                    width, height = arg1.shape
+                    self.thisptr = new OMap(<int>height,<int>width)
+                    s = <int>arg1.strides[0]
+                    start = <unsigned char*>(&buf[0, 0])
+                    for x in range(width):
+                        self.thisptr.grid[x].assign(start + <int>(s * x),
+                                                    start + <int>(s * x + height))
+                else:
+                    height, width = arg1.shape
+                    self.thisptr = new OMap(<int> height, <int> width)
+                    for y in range(height):
+                        for x in range(width):
+                            self.thisptr.grid[x][y] = <bool> arg1[y, x]
             elif USE_ROS_MAP and isinstance(arg1, OccupancyGrid):
                 map_msg = arg1
                 width, height = map_msg.info.width, map_msg.info.height

@@ -219,6 +219,18 @@ namespace utils {
 		(*ss) << "]";
 	}
 
+	void serialize(std::vector<uint8_t> &vals,std::stringstream* ss) {
+		if (vals.size() == 0) {
+			(*ss) << "[]";
+			return;
+		}
+		(*ss) << "[" << vals[0];
+		for (int i = 1; i < vals.size(); ++i) {
+			(*ss) << "," << vals[i];
+		}
+		(*ss) << "]";
+	}
+
 	void serialize(std::vector<float> &vals,std::stringstream* ss) {
 		if (vals.size() == 0) {
 			(*ss) << "[]";

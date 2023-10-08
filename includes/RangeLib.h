@@ -123,7 +123,7 @@ namespace ranges {
 		bool has_error;
 		unsigned width;  // x axis
 		unsigned height; // y axis
-		std::vector<std::vector<bool> > grid;
+		std::vector<std::vector<uint8_t> > grid;
 		std::vector<std::vector<float> > raw_grid;
 		std::string fn; // filename
 		#if _MAKE_TRACE_MAP == 1
@@ -142,14 +142,12 @@ namespace ranges {
 
 		OMap(int w, int h) : width(w), height(h), fn(""), has_error(false) {
 			for (int i = 0; i < w; ++i) {
-				std::vector<bool> y_axis;
-				for (int q = 0; q < h; ++q) y_axis.push_back(false);
+				std::vector<uint8_t> y_axis(h, 0);
 				grid.push_back(y_axis);
 			}
 			#if _MAKE_TRACE_MAP == 1
 			for (int i = 0; i < w; ++i) {
-				std::vector<bool> y_axis;
-				for (int q = 0; q < h; ++q) y_axis.push_back(false);
+				std::vector<bool> y_axis(h, false);
 				trace_grid.push_back(y_axis);
 			}
 			#endif
@@ -168,8 +166,8 @@ namespace ranges {
 			}
 
 			for (int i = 0; i < width; ++i) {
-				std::vector<bool> y_axis;
-				for (int q = 0; q < height; ++q) y_axis.push_back(false);
+				std::vector<uint8_t> y_axis;
+				for (int q = 0; q < height; ++q) y_axis.push_back(0);
 				grid.push_back(y_axis);
 			}
 
@@ -194,7 +192,7 @@ namespace ranges {
 					int g = image[idx + 1];
 					int b = image[idx + 0];
 					int gray = (int) utils::rgb2gray(r,g,b);
-					if (gray < threshold) grid[x][y] = true;
+					if (gray < threshold) grid[x][y] = 1;
 					raw_grid[x][y] = gray;
 				}
 			}
@@ -302,7 +300,7 @@ namespace ranges {
 						int cy;
 						std::tie(cx, cy) = outline[i];
 						if (0 <= cx && 0 <= cy && cx < width && cy < height && !isOccupiedNT(cx,cy)) {
-							edge_map.grid[x][y] = true;
+							edge_map.grid[x][y] = 1;
 							break;
 						}
 					}
